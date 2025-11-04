@@ -1,5 +1,6 @@
 package com.shreyas.ExpenseTracker.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,7 @@ public class User {
     private String email;
     private String password;
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,fetch = FetchType.LAZY,orphanRemoval = true)
+            @JsonManagedReference
     List<Expense> expenses = new ArrayList<>();
     public User() {
 
