@@ -1,14 +1,16 @@
 package com.shreyas.ExpenseTracker.service;
 
+import com.shreyas.ExpenseTracker.DTO.Request.UserRequestDTO;
+import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
 import com.shreyas.ExpenseTracker.entity.User;
-import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 public interface UserService {
-    public User registerUser(User user);
-    public User loginUser(String email, String password);
-    public List<User> getAllUsers();
-    public User getUserById(Long id);
+    public UserResponseDTO registerUser(UserRequestDTO user);
+    public UserResponseDTO loginUser(String email, String password);
+    public List<UserResponseDTO> getAllUsers();
+    public UserResponseDTO getUserById(Long id);
 
     public void deleteUserById(Long id);
 }

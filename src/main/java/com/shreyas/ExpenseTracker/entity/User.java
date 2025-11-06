@@ -28,7 +28,6 @@ public class User {
             @JsonManagedReference
     List<Expense> expenses = new ArrayList<>();
     public User() {
-
     }
 
     public User(Long id, String name, String email, String password) {

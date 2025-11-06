@@ -1,5 +1,8 @@
 package com.shreyas.ExpenseTracker.service.impl;
 
+import com.shreyas.ExpenseTracker.DTO.ExpenseMapper;
+import com.shreyas.ExpenseTracker.DTO.Request.ExpenseRequestDTO;
+import com.shreyas.ExpenseTracker.DTO.Response.ExpenseResponseDTO;
 import com.shreyas.ExpenseTracker.entity.Expense;
 import com.shreyas.ExpenseTracker.entity.User;
 import com.shreyas.ExpenseTracker.repository.ExpenseRepository;
@@ -17,20 +20,28 @@ public class ExpenseImpl implements ExpenseService {
     @Autowired
     UserRepository userRepository;
     @Override
-    public Expense AddExpense(Expense expense,long userId) {
+    public ExpenseResponseDTO AddExpense(ExpenseRequestDTO expense,long userId) {
         User user = userRepository.findById(userId).orElseThrow(()->new RuntimeException("User not found"));
-        expense.setUser(user);
-        return expenseRepository.save(expense);
+
+        Expense expense1 = ExpenseMapper.toExpenseEntity(expense);
+        expense1.setUser(user);
+        expense1 = expenseRepository.save(expense1);
+        ExpenseResponseDTO responseDTO = ExpenseMapper.toExpenseResponseDTO(expense1);
+        return responseDTO;
     }
 
     @Override
-    public List<Expense> getAllExpenesesByUser(long userId) {
-        return expenseRepository.findByUser_Id(userId).orElseThrow();
+    public List<ExpenseResponseDTO> getAllExpenesesByUser(long userId) {
+        List<Expense> expenses = expenseRepository.findByUser_Id(userId).orElseThrow();
+        return expenses.stream().map(expense -> {
+            return ExpenseMapper.toExpenseResponseDTO(expense);
+        }).toList();
     }
 
     @Override
-    public Expense getExpenseById(Long id) {
-        return expenseRepository.findById(id).orElseThrow(()->new RuntimeException("Expense not found"));
+    public ExpenseResponseDTO getExpenseById(Long id) {
+        Expense expense= expenseRepository.findById(id).orElseThrow(()->new RuntimeException("Expense not found"));
+        return ExpenseMapper.toExpenseResponseDTO(expense);
     }
 
     @Override
@@ -40,7 +51,7 @@ public class ExpenseImpl implements ExpenseService {
     }
 
     @Override
-    public Expense updateExpense(Long id,Expense expense) {
+    public ExpenseResponseDTO updateExpense(Long id, ExpenseRequestDTO expense) {
         Expense existingExpense = expenseRepository.findById(id).orElseThrow(()->new RuntimeException("Expense not found"));
 
         existingExpense.setCategory(expense.getCategory());
@@ -48,6 +59,10 @@ public class ExpenseImpl implements ExpenseService {
         existingExpense.setAmount(expense.getAmount());
         existingExpense.setTitle(expense.getTitle());
         existingExpense.setDescription(expense.getDescription());
-        return expenseRepository.save(existingExpense);
+
+        existingExpense = expenseRepository.save(existingExpense);
+
+
+        return ExpenseMapper.toExpenseResponseDTO(existingExpense);
     }
 }
