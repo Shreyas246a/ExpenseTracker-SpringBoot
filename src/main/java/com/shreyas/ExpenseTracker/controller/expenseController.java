@@ -4,6 +4,7 @@ import com.shreyas.ExpenseTracker.DTO.Request.ExpenseRequestDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.ExpenseResponseDTO;
 import com.shreyas.ExpenseTracker.entity.Expense;
 import com.shreyas.ExpenseTracker.service.ExpenseService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class expenseController {
 @Autowired
     ExpenseService expenseService;
 @PostMapping("/add/{userId}")
-public ResponseEntity<ExpenseResponseDTO> addExpense(@RequestBody ExpenseRequestDTO expense, @PathVariable long userId){
+public ResponseEntity<ExpenseResponseDTO> addExpense(@Valid @RequestBody ExpenseRequestDTO expense, @PathVariable long userId){
     ExpenseResponseDTO savedExpense = expenseService.AddExpense(expense, userId);
     return ResponseEntity.ok(savedExpense);
 }
@@ -32,7 +33,7 @@ public ResponseEntity<ExpenseResponseDTO> getExpenseById(@PathVariable Long id) 
     return ResponseEntity.ok(expense);
 }
 @PutMapping("/update/{id}")
-public ResponseEntity<ExpenseResponseDTO> updateExpense(@PathVariable Long id,@RequestBody ExpenseRequestDTO expense) {
+public ResponseEntity<ExpenseResponseDTO> updateExpense(@PathVariable Long id,@Valid @RequestBody ExpenseRequestDTO expense) {
     ExpenseResponseDTO updatedExpense = expenseService.updateExpense(id,expense);
     return ResponseEntity.ok(updatedExpense);
 }

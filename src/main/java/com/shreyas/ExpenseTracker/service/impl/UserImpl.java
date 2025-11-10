@@ -5,6 +5,7 @@ import com.shreyas.ExpenseTracker.DTO.Request.UserRequestDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.ExpenseResponseDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
 import com.shreyas.ExpenseTracker.DTO.UserMapper;
+import com.shreyas.ExpenseTracker.Exceptions.ResourceNotFoundException;
 import com.shreyas.ExpenseTracker.entity.User;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.UserService;
@@ -20,13 +21,16 @@ public class UserImpl implements UserService {
     private UserRepository userRepository;
     @Override
     public UserResponseDTO registerUser(UserRequestDTO user) {
+        if(userRepository.findByEmail(user.getEmail()).isPresent()){
+            throw new RuntimeException("User with email "+user.getEmail()+" already exists");
+        }
         User newUser = userRepository.save(UserMapper.userRequestDTOToUser(user));
         return UserMapper.userResponseDTO(newUser);
     }
 
     @Override
     public UserResponseDTO loginUser(String email, String password) {
-        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
         if(user.getPassword().equals(password)){
             UserResponseDTO response = new UserResponseDTO();
             response.setEmail(user.getEmail());
@@ -53,7 +57,7 @@ public class UserImpl implements UserService {
 
     @Override
     public UserResponseDTO getUserById(Long id) {
-        User u = userRepository.findById(id).orElseThrow(()->new RuntimeException("User not found"));
+        User u = userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User not found"));
         UserResponseDTO response = UserMapper.userResponseDTO(u);
         List<ExpenseResponseDTO> expenseResponseDTOS =u.getExpenses().stream().map(expense -> {
             return ExpenseMapper.toExpenseResponseDTO(expense);
