@@ -1,6 +1,7 @@
 package com.shreyas.ExpenseTracker.controller;
 
 import com.shreyas.ExpenseTracker.DTO.Request.ExpenseRequestDTO;
+import com.shreyas.ExpenseTracker.DTO.Response.ApiResponse;
 import com.shreyas.ExpenseTracker.DTO.Response.ExpenseResponseDTO;
 import com.shreyas.ExpenseTracker.entity.Expense;
 import com.shreyas.ExpenseTracker.service.ExpenseService;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -18,29 +20,31 @@ public class expenseController {
 @Autowired
     ExpenseService expenseService;
 @PostMapping("/add/{userId}")
-public ResponseEntity<ExpenseResponseDTO> addExpense(@Valid @RequestBody ExpenseRequestDTO expense, @PathVariable long userId){
+public ResponseEntity<ApiResponse<ExpenseResponseDTO>> addExpense(@Valid @RequestBody ExpenseRequestDTO expense, @PathVariable long userId){
     ExpenseResponseDTO savedExpense = expenseService.AddExpense(expense, userId);
-    return ResponseEntity.ok(savedExpense);
+    return ResponseEntity.ok(new ApiResponse<>(true,"Expense added successfully",savedExpense, LocalDateTime.now()));
 }
+
 @GetMapping("/user/{userId}")
-public ResponseEntity<List<ExpenseResponseDTO>> getAllExpensesByUser(@PathVariable long userId) {
+public ResponseEntity<ApiResponse<List<ExpenseResponseDTO>>> getAllExpensesByUser(@PathVariable long userId) {
     List<ExpenseResponseDTO> expenses = expenseService.getAllExpenesesByUser(userId);
-    return ResponseEntity.ok(expenses);
+    return ResponseEntity.ok(new ApiResponse<>(true,"Expenses fetched successfully",expenses,LocalDateTime.now()));
 }
+
 @GetMapping("/{id}")
-public ResponseEntity<ExpenseResponseDTO> getExpenseById(@PathVariable Long id) {
+public ResponseEntity<ApiResponse<ExpenseResponseDTO>> getExpenseById(@PathVariable Long id) {
     ExpenseResponseDTO expense = expenseService.getExpenseById(id);
-    return ResponseEntity.ok(expense);
+    return ResponseEntity.ok(new ApiResponse<>(true,"Expense fetched successfully",expense, LocalDateTime.now()));
 }
 @PutMapping("/update/{id}")
-public ResponseEntity<ExpenseResponseDTO> updateExpense(@PathVariable Long id,@Valid @RequestBody ExpenseRequestDTO expense) {
+public ResponseEntity<ApiResponse<ExpenseResponseDTO>> updateExpense(@PathVariable Long id,@Valid @RequestBody ExpenseRequestDTO expense) {
     ExpenseResponseDTO updatedExpense = expenseService.updateExpense(id,expense);
-    return ResponseEntity.ok(updatedExpense);
+    return ResponseEntity.ok(new ApiResponse<>(true,"Expense updated successfully",updatedExpense, LocalDateTime.now()));
 }
 
 @DeleteMapping("/delete/{id}")
-public ResponseEntity<String> deleteExpenseById(@PathVariable Long id) {
+public ResponseEntity<ApiResponse<String>> deleteExpenseById(@PathVariable Long id) {
     expenseService.deleteExpenseById(id);
-    return ResponseEntity.ok("Expense with id " + id + " deleted successfully.");
+    return ResponseEntity.ok(new ApiResponse<>(true,"Expense deleted successfully","Expense with id " + id + " deleted successfully.", LocalDateTime.now()));
 }
 }
