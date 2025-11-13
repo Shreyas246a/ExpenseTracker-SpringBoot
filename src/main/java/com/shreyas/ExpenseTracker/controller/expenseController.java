@@ -19,15 +19,15 @@ public class expenseController {
 
 @Autowired
     ExpenseService expenseService;
-@PostMapping("/add/{userId}")
-public ResponseEntity<ApiResponse<ExpenseResponseDTO>> addExpense(@Valid @RequestBody ExpenseRequestDTO expense, @PathVariable long userId){
-    ExpenseResponseDTO savedExpense = expenseService.AddExpense(expense, userId);
+@PostMapping("/add")
+public ResponseEntity<ApiResponse<ExpenseResponseDTO>> addExpense(@Valid @RequestBody ExpenseRequestDTO expense){
+    ExpenseResponseDTO savedExpense = expenseService.AddExpense(expense);
     return ResponseEntity.ok(new ApiResponse<>(true,"Expense added successfully",savedExpense, LocalDateTime.now()));
 }
 
 @GetMapping("/user/{userId}")
-public ResponseEntity<ApiResponse<List<ExpenseResponseDTO>>> getAllExpensesByUser(@PathVariable long userId) {
-    List<ExpenseResponseDTO> expenses = expenseService.getAllExpenesesByUser(userId);
+public ResponseEntity<ApiResponse<List<ExpenseResponseDTO>>> getAllExpensesByUser() {
+    List<ExpenseResponseDTO> expenses = expenseService.getAllExpenesesByUser();
     return ResponseEntity.ok(new ApiResponse<>(true,"Expenses fetched successfully",expenses,LocalDateTime.now()));
 }
 

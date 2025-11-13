@@ -4,15 +4,19 @@ import com.shreyas.ExpenseTracker.DTO.ExpenseMapper;
 import com.shreyas.ExpenseTracker.DTO.Request.ExpenseRequestDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.ExpenseResponseDTO;
 import com.shreyas.ExpenseTracker.Exceptions.ResourceNotFoundException;
+import com.shreyas.ExpenseTracker.Utils.JwtUtil;
 import com.shreyas.ExpenseTracker.entity.Expense;
 import com.shreyas.ExpenseTracker.entity.User;
 import com.shreyas.ExpenseTracker.repository.ExpenseRepository;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class ExpenseImpl implements ExpenseService {
@@ -20,9 +24,12 @@ public class ExpenseImpl implements ExpenseService {
     ExpenseRepository expenseRepository;
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    JwtUtil jwtUtil;
     @Override
-    public ExpenseResponseDTO AddExpense(ExpenseRequestDTO expense,long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User not found"));
+    public ExpenseResponseDTO AddExpense(ExpenseRequestDTO expense) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
 
         Expense expense1 = ExpenseMapper.toExpenseEntity(expense);
         expense1.setUser(user);
@@ -32,7 +39,10 @@ public class ExpenseImpl implements ExpenseService {
     }
 
     @Override
-    public List<ExpenseResponseDTO> getAllExpenesesByUser(long userId) {
+    public List<ExpenseResponseDTO> getAllExpenesesByUser() {
+       String email = SecurityContextHolder.getContext().getAuthentication().getName();
+       User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+       Long userId = user.getId();
         List<Expense> expenses = expenseRepository.findByUser_Id(userId).orElseThrow();
         return expenses.stream().map(expense -> {
             return ExpenseMapper.toExpenseResponseDTO(expense);
@@ -40,21 +50,38 @@ public class ExpenseImpl implements ExpenseService {
     }
 
     @Override
-    public ExpenseResponseDTO getExpenseById(Long id) {
+    public ExpenseResponseDTO getExpenseById(Long id) throws org.springframework.security.access.AccessDeniedException {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        long userId = user.getId();
         Expense expense= expenseRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Expense not found"));
+        if(expense.getUser().getId() != userId){
+            throw new AccessDeniedException("You do not have access to this expense");
+        }
         return ExpenseMapper.toExpenseResponseDTO(expense);
     }
 
     @Override
     public void deleteExpenseById(Long id) {
-        Expense expense = expenseRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Expense not found"));
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        long userId = user.getId();
+        Expense expense= expenseRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Expense not found"));
+        if(expense.getUser().getId() != userId){
+            throw new AccessDeniedException("You do not have access to this expense");
+        }
         expenseRepository.delete(expense);
     }
 
     @Override
     public ExpenseResponseDTO updateExpense(Long id, ExpenseRequestDTO expense) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        long userId = user.getId();
         Expense existingExpense = expenseRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Expense not found"));
-
+        if(existingExpense.getUser().getId() != userId){
+            throw new AccessDeniedException("You do not have access to this expense");
+        }
         existingExpense.setCategory(expense.getCategory());
         existingExpense.setDate(expense.getDate());
         existingExpense.setAmount(expense.getAmount());

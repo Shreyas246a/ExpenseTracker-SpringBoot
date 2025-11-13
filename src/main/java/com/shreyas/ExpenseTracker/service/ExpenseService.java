@@ -8,8 +8,8 @@ import java.util.List;
 
 
 public interface ExpenseService {
-    public ExpenseResponseDTO AddExpense(ExpenseRequestDTO expense,long userId);
-    public List<ExpenseResponseDTO> getAllExpenesesByUser(long userId);
+    public ExpenseResponseDTO AddExpense(ExpenseRequestDTO expense);
+    public List<ExpenseResponseDTO> getAllExpenesesByUser();
     public ExpenseResponseDTO getExpenseById(Long id);
     public void deleteExpenseById(Long id);
     public ExpenseResponseDTO updateExpense(Long id, ExpenseRequestDTO expense);

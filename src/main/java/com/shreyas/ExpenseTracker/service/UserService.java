@@ -5,10 +5,11 @@ import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
 import com.shreyas.ExpenseTracker.entity.User;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
     public UserResponseDTO registerUser(UserRequestDTO user);
-    public UserResponseDTO loginUser(String email, String password);
+    public Map<String,Object> loginUser(String email, String password);
     public List<UserResponseDTO> getAllUsers();
     public UserResponseDTO getUserById(Long id);
 

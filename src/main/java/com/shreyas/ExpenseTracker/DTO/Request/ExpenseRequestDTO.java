@@ -14,7 +14,6 @@ public class ExpenseRequestDTO {
     private String title;
     private String description;
     @NotNull(message = "Amount is required")
-    @Size(min = 1, message = "Amount must be greater than zero")
     private Double amount;
     @NotNull(message = "Category is required")
     private String category;

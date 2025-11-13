@@ -6,17 +6,22 @@ import com.shreyas.ExpenseTracker.DTO.Response.ExpenseResponseDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
 import com.shreyas.ExpenseTracker.DTO.UserMapper;
 import com.shreyas.ExpenseTracker.Exceptions.ResourceNotFoundException;
+import com.shreyas.ExpenseTracker.Utils.JwtUtil;
 import com.shreyas.ExpenseTracker.entity.User;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserImpl implements UserService {
+    @Autowired
+    JwtUtil jwtUtil;
     @Autowired
     private UserRepository userRepository;
     @Override
@@ -29,14 +34,17 @@ public class UserImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO loginUser(String email, String password) {
+    public Map<String,Object> loginUser(String email, String password) {
         User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
         if(user.getPassword().equals(password)){
             UserResponseDTO response = new UserResponseDTO();
             response.setEmail(user.getEmail());
             response.setId(user.getId());
             response.setName(user.getName());
-            return response;
+            Map<String,Object> data = new java.util.HashMap<>(Map.of("UserData", response));
+            String token = jwtUtil.generateToken(user);
+            data.put("token",token);
+            return data;
         } else {
             throw new RuntimeException("Invalid Password");
         }

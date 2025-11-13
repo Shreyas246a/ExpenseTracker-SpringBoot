@@ -29,4 +29,9 @@ public class adminController {
             return ResponseEntity.status(404).body("User with id " + id + " not found.");
         }
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        UserResponseDTO user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
+    }
 }
