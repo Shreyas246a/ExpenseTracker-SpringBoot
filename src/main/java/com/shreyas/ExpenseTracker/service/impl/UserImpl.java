@@ -12,6 +12,7 @@ import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,19 +25,22 @@ public class UserImpl implements UserService {
     JwtUtil jwtUtil;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
     @Override
     public UserResponseDTO registerUser(UserRequestDTO user) {
         if(userRepository.findByEmail(user.getEmail()).isPresent()){
             throw new RuntimeException("User with email "+user.getEmail()+" already exists");
         }
         User newUser = userRepository.save(UserMapper.userRequestDTOToUser(user));
+        newUser.setPassword(passwordEncoder.encode(user.getPassword()));
         return UserMapper.userResponseDTO(newUser);
     }
 
     @Override
     public Map<String,Object> loginUser(String email, String password) {
         User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
-        if(user.getPassword().equals(password)){
+        if(passwordEncoder.matches(password, user.getPassword())){
             UserResponseDTO response = new UserResponseDTO();
             response.setEmail(user.getEmail());
             response.setId(user.getId());
