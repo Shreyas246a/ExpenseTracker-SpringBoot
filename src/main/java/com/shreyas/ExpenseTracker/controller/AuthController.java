@@ -1,5 +1,7 @@
 package com.shreyas.ExpenseTracker.controller;
 
+import com.shreyas.ExpenseTracker.DTO.Request.ForgotPasswordRequest;
+import com.shreyas.ExpenseTracker.DTO.Request.ResetPasswordRequest;
 import com.shreyas.ExpenseTracker.DTO.Request.UserRequestDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
 import com.shreyas.ExpenseTracker.service.UserService;
@@ -32,4 +34,14 @@ public class AuthController {
         Map<String ,Object>map = u.loginUser(email, password);
         return ResponseEntity.ok(map);
     }
-}
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String,String>> forgotPassword(@RequestBody ForgotPasswordRequest request){
+        u.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(Map.of("message","Password reset link sent to your email if it exists."));
+    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String,String>> resetPassword(@RequestBody ResetPasswordRequest request){
+        u.resetPassword(request.getToken(),request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message","Password has been reset successfully."));
+    }
+ }

@@ -7,17 +7,22 @@ import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
 import com.shreyas.ExpenseTracker.DTO.UserMapper;
 import com.shreyas.ExpenseTracker.Exceptions.ResourceNotFoundException;
 import com.shreyas.ExpenseTracker.Utils.JwtUtil;
+import com.shreyas.ExpenseTracker.entity.PasswordResetToken;
 import com.shreyas.ExpenseTracker.entity.User;
+import com.shreyas.ExpenseTracker.repository.PasswordResetTokenRepo;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
+import com.shreyas.ExpenseTracker.service.MailService;
 import com.shreyas.ExpenseTracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class UserImpl implements UserService {
@@ -26,14 +31,21 @@ public class UserImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private MailService emailService;
+    @Autowired
+    private PasswordResetTokenRepo passwordResetTokenRepo;
     @Override
     public UserResponseDTO registerUser(UserRequestDTO user) {
         if(userRepository.findByEmail(user.getEmail()).isPresent()){
             throw new RuntimeException("User with email "+user.getEmail()+" already exists");
         }
-        User newUser = userRepository.save(UserMapper.userRequestDTOToUser(user));
+
+        User newUser = UserMapper.userRequestDTOToUser(user);
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        newUser = userRepository.save(newUser);
+        System.out.println(newUser.getPassword());
         return UserMapper.userResponseDTO(newUser);
     }
 
@@ -53,6 +65,63 @@ public class UserImpl implements UserService {
             throw new RuntimeException("Invalid Password");
         }
     }
+
+
+    public void forgotPassword(String email){
+        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken passwordResetToken = new PasswordResetToken();
+        passwordResetToken.setToken(token);
+        passwordResetToken.setExpiry(LocalDateTime.now().plusMinutes(15));
+        passwordResetToken.setEmail(email);
+        passwordResetTokenRepo.save(passwordResetToken);
+        String resetLink = "http://localhost:3000/reset-password?token=" + token; // frontend URL
+
+        emailService.sendEmail(email,
+                "Password Reset Request",
+                "Click the link to reset your password:\n\n" + resetLink +
+                        "\n\nThis link expires in 15 minutes.");
+
+        System.out.println("Password reset link sent to " + email);
+    }
+    public void resetPassword(String token,String password){
+        PasswordResetToken p = passwordResetTokenRepo.findByToken(token).orElseThrow(()->new ResourceNotFoundException("Invalid token"));
+        if(p.getExpiry().isBefore(LocalDateTime.now())){
+            throw new RuntimeException("Token expired");
+        } else {
+            String email = p.getEmail();
+            System.out.println(p);
+            User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+            user.setPassword(passwordEncoder.encode(password));
+            userRepository.save(user);
+            passwordResetTokenRepo.delete(p);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Override
     public List<UserResponseDTO> getAllUsers() {

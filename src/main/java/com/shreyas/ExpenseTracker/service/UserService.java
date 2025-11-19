@@ -12,6 +12,8 @@ public interface UserService {
     public Map<String,Object> loginUser(String email, String password);
     public List<UserResponseDTO> getAllUsers();
     public UserResponseDTO getUserById(Long id);
+    public void resetPassword(String token,String password);
+    public void forgotPassword(String email);
 
     public void deleteUserById(Long id);
 }
