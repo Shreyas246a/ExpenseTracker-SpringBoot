@@ -4,9 +4,12 @@ import com.shreyas.ExpenseTracker.DTO.ExpenseMapper;
 import com.shreyas.ExpenseTracker.DTO.Request.ExpenseRequestDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.ExpenseResponseDTO;
 import com.shreyas.ExpenseTracker.Exceptions.ResourceNotFoundException;
+import com.shreyas.ExpenseTracker.Utils.AuthUtil;
 import com.shreyas.ExpenseTracker.Utils.JwtUtil;
+import com.shreyas.ExpenseTracker.entity.Category;
 import com.shreyas.ExpenseTracker.entity.Expense;
 import com.shreyas.ExpenseTracker.entity.User;
+import com.shreyas.ExpenseTracker.repository.CategoryRepository;
 import com.shreyas.ExpenseTracker.repository.ExpenseRepository;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.ExpenseService;
@@ -26,6 +29,8 @@ public class ExpenseImpl implements ExpenseService {
     UserRepository userRepository;
     @Autowired
     JwtUtil jwtUtil;
+    @Autowired
+    CategoryRepository categoryRepository;
     @Override
     public ExpenseResponseDTO AddExpense(ExpenseRequestDTO expense) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -33,9 +38,10 @@ public class ExpenseImpl implements ExpenseService {
 
         Expense expense1 = ExpenseMapper.toExpenseEntity(expense);
         expense1.setUser(user);
+        Category c = categoryRepository.findByName(expense.getCategory()).orElseThrow(()->new ResourceNotFoundException("Category not found"));
+        expense1.setCategory(c);
         expense1 = expenseRepository.save(expense1);
-        ExpenseResponseDTO responseDTO = ExpenseMapper.toExpenseResponseDTO(expense1);
-        return responseDTO;
+        return ExpenseMapper.toExpenseResponseDTO(expense1);
     }
 
     @Override
@@ -51,8 +57,7 @@ public class ExpenseImpl implements ExpenseService {
 
     @Override
     public ExpenseResponseDTO getExpenseById(Long id) throws org.springframework.security.access.AccessDeniedException {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        User user = AuthUtil.getCurrentUser();
         long userId = user.getId();
         Expense expense= expenseRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Expense not found"));
         if(expense.getUser().getId() != userId){
@@ -82,7 +87,9 @@ public class ExpenseImpl implements ExpenseService {
         if(existingExpense.getUser().getId() != userId){
             throw new AccessDeniedException("You do not have access to this expense");
         }
-        existingExpense.setCategory(expense.getCategory());
+        Category c = categoryRepository.findByName(expense.getCategory()).orElseThrow(()->new ResourceNotFoundException("Category not found"));
+
+        existingExpense.setCategory(c);
         existingExpense.setDate(expense.getDate());
         existingExpense.setAmount(expense.getAmount());
         existingExpense.setTitle(expense.getTitle());

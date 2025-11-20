@@ -21,10 +21,13 @@ public class Expense {
     private String description;
     @Column(nullable = false)
     private Double amount;
-    private String category;
     private LocalDate date;
     @ManyToOne()
     @JoinColumn(name ="user_id")
     @JsonBackReference
     private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id",nullable = false)
+    private Category category;
+
 }

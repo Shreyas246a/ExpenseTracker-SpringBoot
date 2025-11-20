@@ -43,9 +43,9 @@ public class JwtUtil {
     }
 
     public UsernamePasswordAuthenticationToken getAuthenticationToken(String token, UserDetails userDetails) {
-        Claims claims = extractClaims(token);
+        extractClaims(token);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-    }
+    }   
 
     public String generateToken(User user) {
         return Jwts.builder().setSubject(user.getEmail())

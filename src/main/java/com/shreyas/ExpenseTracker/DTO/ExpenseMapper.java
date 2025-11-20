@@ -11,7 +11,7 @@ public class ExpenseMapper {
             response.setAmount(expense.getAmount());
             response.setDescription(expense.getDescription());
             response.setTitle(expense.getTitle());
-            response.setCategory(expense.getCategory());
+            response.setCategory(expense.getCategory().getName());
             response.setDate(expense.getDate());
             response.setUserName(expense.getUser().getName());
             return response;
@@ -21,7 +21,6 @@ public class ExpenseMapper {
         expense.setAmount(expenseDTO.getAmount());
         expense.setDescription(expenseDTO.getDescription());
         expense.setTitle(expenseDTO.getTitle());
-        expense.setCategory(expenseDTO.getCategory());
         expense.setDate(expenseDTO.getDate());
         return expense;
     }

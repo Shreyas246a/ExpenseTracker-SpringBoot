@@ -6,7 +6,9 @@ import com.shreyas.ExpenseTracker.DTO.Response.ExpenseResponseDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
 import com.shreyas.ExpenseTracker.DTO.UserMapper;
 import com.shreyas.ExpenseTracker.Exceptions.ResourceNotFoundException;
+import com.shreyas.ExpenseTracker.Utils.DefaultCategories;
 import com.shreyas.ExpenseTracker.Utils.JwtUtil;
+import com.shreyas.ExpenseTracker.entity.Category;
 import com.shreyas.ExpenseTracker.entity.PasswordResetToken;
 import com.shreyas.ExpenseTracker.entity.User;
 import com.shreyas.ExpenseTracker.repository.PasswordResetTokenRepo;
@@ -17,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,16 @@ public class UserImpl implements UserService {
         User newUser = UserMapper.userRequestDTOToUser(user);
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
         newUser = userRepository.save(newUser);
-        System.out.println(newUser.getPassword());
+
+        User finalNewUser = newUser;
+
+        DefaultCategories.CATEGORIES.forEach((cat)->{
+            Category category = Category.builder().
+                     name(cat)
+                    .user(finalNewUser)
+                    .isDefault(true)
+                    .build();
+        });
         return UserMapper.userResponseDTO(newUser);
     }
 
