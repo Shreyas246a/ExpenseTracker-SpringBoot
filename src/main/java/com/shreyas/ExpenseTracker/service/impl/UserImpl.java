@@ -11,6 +11,7 @@ import com.shreyas.ExpenseTracker.Utils.JwtUtil;
 import com.shreyas.ExpenseTracker.entity.Category;
 import com.shreyas.ExpenseTracker.entity.PasswordResetToken;
 import com.shreyas.ExpenseTracker.entity.User;
+import com.shreyas.ExpenseTracker.repository.CategoryRepository;
 import com.shreyas.ExpenseTracker.repository.PasswordResetTokenRepo;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.MailService;
@@ -36,6 +37,8 @@ public class UserImpl implements UserService {
     @Autowired
     private MailService emailService;
     @Autowired
+    CategoryRepository categoryRepository;
+    @Autowired
     private PasswordResetTokenRepo passwordResetTokenRepo;
     @Override
     public UserResponseDTO registerUser(UserRequestDTO user) {
@@ -55,7 +58,9 @@ public class UserImpl implements UserService {
                     .user(finalNewUser)
                     .isDefault(true)
                     .build();
+            categoryRepository.save(category);
         });
+
         return UserMapper.userResponseDTO(newUser);
     }
 

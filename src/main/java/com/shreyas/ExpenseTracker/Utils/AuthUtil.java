@@ -8,14 +8,16 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuthUtil {
-@Autowired
-   static private UserRepository repository;
-    public static User getCurrentUser() {
 
+    @Autowired
+    private UserRepository repository;
+
+    public User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         if(email != null) {
-            return repository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+            return repository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
         }
-        return null; // Placeholder return statement
+        return null;
     }
 }

@@ -10,4 +10,5 @@ import lombok.*;
 public class CategoryDTO {
     private long id;
     private String name;
+    private boolean isDefault;
 }

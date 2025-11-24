@@ -14,12 +14,11 @@ import com.shreyas.ExpenseTracker.repository.ExpenseRepository;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class ExpenseImpl implements ExpenseService {
@@ -31,6 +30,8 @@ public class ExpenseImpl implements ExpenseService {
     JwtUtil jwtUtil;
     @Autowired
     CategoryRepository categoryRepository;
+    @Autowired
+    AuthUtil authUtil;
     @Override
     public ExpenseResponseDTO AddExpense(ExpenseRequestDTO expense) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -45,19 +46,17 @@ public class ExpenseImpl implements ExpenseService {
     }
 
     @Override
-    public List<ExpenseResponseDTO> getAllExpenesesByUser() {
+    public Page<ExpenseResponseDTO> getAllExpenesesByUser(Pageable page) {
        String email = SecurityContextHolder.getContext().getAuthentication().getName();
        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
        Long userId = user.getId();
-        List<Expense> expenses = expenseRepository.findByUser_Id(userId).orElseThrow();
-        return expenses.stream().map(expense -> {
-            return ExpenseMapper.toExpenseResponseDTO(expense);
-        }).toList();
+        Page<Expense> expenses = expenseRepository.findByUser_Id(userId, page);
+        return expenses.map(ExpenseMapper::toExpenseResponseDTO);
     }
 
     @Override
     public ExpenseResponseDTO getExpenseById(Long id) throws org.springframework.security.access.AccessDeniedException {
-        User user = AuthUtil.getCurrentUser();
+        User user = authUtil.getCurrentUser();
         long userId = user.getId();
         Expense expense= expenseRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Expense not found"));
         if(expense.getUser().getId() != userId){

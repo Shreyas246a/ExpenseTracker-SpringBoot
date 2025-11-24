@@ -20,6 +20,7 @@ public class Category {
 
     private boolean isDefault; //
 
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
