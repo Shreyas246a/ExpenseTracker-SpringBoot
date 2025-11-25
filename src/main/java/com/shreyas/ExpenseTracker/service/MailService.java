@@ -12,7 +12,6 @@ public class MailService {
     }
 
     public void sendEmail(String to, String subject, String body) {
-        // Implementation for sending email
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);

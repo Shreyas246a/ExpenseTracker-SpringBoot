@@ -14,11 +14,14 @@ import com.shreyas.ExpenseTracker.repository.ExpenseRepository;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class ExpenseImpl implements ExpenseService {
@@ -32,34 +35,27 @@ public class ExpenseImpl implements ExpenseService {
     CategoryRepository categoryRepository;
     @Autowired
     AuthUtil authUtil;
+
     @Override
     public ExpenseResponseDTO AddExpense(ExpenseRequestDTO expense) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Expense expense1 = ExpenseMapper.toExpenseEntity(expense);
         expense1.setUser(user);
-        Category c = categoryRepository.findByName(expense.getCategory()).orElseThrow(()->new ResourceNotFoundException("Category not found"));
+        Category c = categoryRepository.findByName(expense.getCategory()).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         expense1.setCategory(c);
         expense1 = expenseRepository.save(expense1);
         return ExpenseMapper.toExpenseResponseDTO(expense1);
     }
 
-    @Override
-    public Page<ExpenseResponseDTO> getAllExpenesesByUser(Pageable page) {
-       String email = SecurityContextHolder.getContext().getAuthentication().getName();
-       User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
-       Long userId = user.getId();
-        Page<Expense> expenses = expenseRepository.findByUser_Id(userId, page);
-        return expenses.map(ExpenseMapper::toExpenseResponseDTO);
-    }
 
     @Override
     public ExpenseResponseDTO getExpenseById(Long id) throws org.springframework.security.access.AccessDeniedException {
         User user = authUtil.getCurrentUser();
         long userId = user.getId();
-        Expense expense= expenseRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Expense not found"));
-        if(expense.getUser().getId() != userId){
+        Expense expense = expenseRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
+        if (expense.getUser().getId() != userId) {
             throw new AccessDeniedException("You do not have access to this expense");
         }
         return ExpenseMapper.toExpenseResponseDTO(expense);
@@ -68,10 +64,10 @@ public class ExpenseImpl implements ExpenseService {
     @Override
     public void deleteExpenseById(Long id) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         long userId = user.getId();
-        Expense expense= expenseRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Expense not found"));
-        if(expense.getUser().getId() != userId){
+        Expense expense = expenseRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
+        if (expense.getUser().getId() != userId) {
             throw new AccessDeniedException("You do not have access to this expense");
         }
         expenseRepository.delete(expense);
@@ -80,13 +76,13 @@ public class ExpenseImpl implements ExpenseService {
     @Override
     public ExpenseResponseDTO updateExpense(Long id, ExpenseRequestDTO expense) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         long userId = user.getId();
-        Expense existingExpense = expenseRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Expense not found"));
-        if(existingExpense.getUser().getId() != userId){
+        Expense existingExpense = expenseRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
+        if (existingExpense.getUser().getId() != userId) {
             throw new AccessDeniedException("You do not have access to this expense");
         }
-        Category c = categoryRepository.findByName(expense.getCategory()).orElseThrow(()->new ResourceNotFoundException("Category not found"));
+        Category c = categoryRepository.findByName(expense.getCategory()).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         existingExpense.setCategory(c);
         existingExpense.setDate(expense.getDate());
@@ -96,5 +92,18 @@ public class ExpenseImpl implements ExpenseService {
         existingExpense = expenseRepository.save(existingExpense);
 
         return ExpenseMapper.toExpenseResponseDTO(existingExpense);
+    }
+
+    @Override
+    public Page<ExpenseResponseDTO> getAllExpenesesByUser(
+            int page, int size, Long category, LocalDate startDate, LocalDate endDate, Double minAmount, Double maxAmount, String sortBy, String order) {
+        User user = authUtil.getCurrentUser();
+
+        Sort sort = order.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Expense> expenses = expenseRepository.filterExpenses(user.getId(), category, startDate, endDate, minAmount, maxAmount, pageable);
+
+        return expenses.map((ExpenseMapper::toExpenseResponseDTO));
     }
 }

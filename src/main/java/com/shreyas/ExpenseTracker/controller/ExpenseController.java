@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -30,10 +32,16 @@ public ResponseEntity<ApiResponse<ExpenseResponseDTO>> addExpense(@Valid @Reques
 @GetMapping("/Allexpenses")
 public ResponseEntity<ApiResponse<Page<ExpenseResponseDTO>>> getAllExpensesByUser(
         @RequestParam(required = false,defaultValue = "0") int page,
-        @RequestParam(required = false,defaultValue = "10") int size
+        @RequestParam(required = false,defaultValue = "10") int size,
+        @RequestParam(required = false) Long categoryId,
+        @RequestParam(required = false)@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+        @RequestParam(required = false)@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+        @RequestParam(required = false) Double minAmount,
+        @RequestParam(required = false) Double maxAmount,
+        @RequestParam(defaultValue = "date") String sortBy,
+        @RequestParam(defaultValue = "desc") String order
 ) {
-    Pageable pageable = PageRequest.of(page, size);
-    Page<ExpenseResponseDTO> expenses = expenseService.getAllExpenesesByUser(pageable);
+    Page<ExpenseResponseDTO> expenses = expenseService.getAllExpenesesByUser(page, size, categoryId, startDate, endDate, minAmount, maxAmount, sortBy, order);
     return ResponseEntity.ok(new ApiResponse<>(true,"Expenses fetched successfully",expenses,LocalDateTime.now()));
 }
 

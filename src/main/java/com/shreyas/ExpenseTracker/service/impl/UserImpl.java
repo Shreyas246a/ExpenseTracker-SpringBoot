@@ -86,12 +86,14 @@ public class UserImpl implements UserService {
         User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
 
         String token = UUID.randomUUID().toString();
+
         PasswordResetToken passwordResetToken = new PasswordResetToken();
         passwordResetToken.setToken(token);
         passwordResetToken.setExpiry(LocalDateTime.now().plusMinutes(15));
         passwordResetToken.setEmail(email);
         passwordResetTokenRepo.save(passwordResetToken);
-        String resetLink = "http://localhost:3000/reset-password?token=" + token; // frontend URL
+
+        String resetLink = "http://localhost:3000/reset-password?token=" + token;
 
         emailService.sendEmail(email,
                 "Password Reset Request",
