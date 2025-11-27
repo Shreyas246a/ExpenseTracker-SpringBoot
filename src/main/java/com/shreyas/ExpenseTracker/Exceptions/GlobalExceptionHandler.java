@@ -28,6 +28,7 @@ public class GlobalExceptionHandler {
         response.setTimestamp(LocalDateTime.now());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         ErrorResponse response = new ErrorResponse();
@@ -45,5 +46,14 @@ public class GlobalExceptionHandler {
         error.put("error", "Something went wrong");
         error.put("details", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(TokenException.class)
+    public  ResponseEntity<ErrorResponse> handleTokenException(TokenException ex) {
+        ErrorResponse response = new ErrorResponse();
+        response.setMessage(ex.getMessage());
+        response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        response.setTimestamp(LocalDateTime.now());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }

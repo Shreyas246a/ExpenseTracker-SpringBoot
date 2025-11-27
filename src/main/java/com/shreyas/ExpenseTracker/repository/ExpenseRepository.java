@@ -14,6 +14,7 @@ import java.time.LocalDate;
 public interface ExpenseRepository extends JpaRepository<Expense,Long> {
     Page<Expense> findByUser_Id(Long id, Pageable pageable);
     public boolean existsByCategory_Id(Long categoryId);
+
     @Query("""
             SELECT e FROM Expense e
             WHERE e.user.id = :userId

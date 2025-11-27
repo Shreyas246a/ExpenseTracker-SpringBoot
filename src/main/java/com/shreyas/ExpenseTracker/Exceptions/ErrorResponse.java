@@ -13,8 +13,8 @@ public class ErrorResponse {
     private int statusCode;
     private LocalDateTime timestamp;
     public ErrorResponse(){
-
     }
+
     public ErrorResponse(String message, int statusCode, LocalDateTime timestamp) {
         this.message = message;
         this.statusCode = statusCode;
