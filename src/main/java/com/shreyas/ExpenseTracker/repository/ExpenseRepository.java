@@ -26,11 +26,11 @@ public interface ExpenseRepository extends JpaRepository<Expense,Long> {
             """)
     public Page<Expense> filterExpenses(
     @Param("userId")       Long userId,
-    @Param("category")       Long category,
-    @Param("startDate")       LocalDate startDate,
-    @Param("endDate")        LocalDate endDate,
-    @Param("minAmount")       Double minAmount,
-    @Param("maxAmount")       Double maxAmount,
+    @Param("category")     Long category,
+    @Param("startDate")    LocalDate startDate,
+    @Param("endDate")      LocalDate endDate,
+    @Param("minAmount")    Double minAmount,
+    @Param("maxAmount")    Double maxAmount,
     Pageable pageable
     );
 }

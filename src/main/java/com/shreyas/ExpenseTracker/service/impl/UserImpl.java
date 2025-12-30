@@ -51,16 +51,6 @@ public class UserImpl implements UserService {
         newUser = userRepository.save(newUser);
 
         User finalNewUser = newUser;
-
-        DefaultCategories.CATEGORIES.forEach((cat)->{
-            Category category = Category.builder().
-                     name(cat)
-                    .user(finalNewUser)
-                    .isDefault(true)
-                    .build();
-            categoryRepository.save(category);
-        });
-
         return UserMapper.userResponseDTO(newUser);
     }
 
@@ -77,7 +67,7 @@ public class UserImpl implements UserService {
             data.put("token",token);
             return data;
         } else {
-            throw new RuntimeException("Invalid Password");
+            throw new ResourceNotFoundException("Invalid Password");
         }
     }
 

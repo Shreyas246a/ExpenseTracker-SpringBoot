@@ -1,5 +1,7 @@
 package com.shreyas.ExpenseTracker.Utils;
 
+import jakarta.annotation.PostConstruct;
+
 import java.util.List;
 
 public class DefaultCategories {

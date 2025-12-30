@@ -1,5 +1,6 @@
 package com.shreyas.ExpenseTracker.Utils;
 
+import com.shreyas.ExpenseTracker.Exceptions.TokenException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,10 +33,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = userDetailService.loadUserByUsername(userEmail);
-            if(jwtUtils.validateToken(jwt,userDetails)){
-                UsernamePasswordAuthenticationToken token = jwtUtils.getAuthenticationToken(jwt,userDetails);
-                token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(token);
+            try {
+                if (jwtUtils.validateToken(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken token = jwtUtils.getAuthenticationToken(jwt, userDetails);
+                    token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(token);
+                }
+            }catch (Exception e){
+                throw new TokenException("Token Expired or Invalid");
             }
         }
         filterChain.doFilter(request,response);

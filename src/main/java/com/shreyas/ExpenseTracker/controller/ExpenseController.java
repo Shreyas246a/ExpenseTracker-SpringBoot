@@ -29,7 +29,7 @@ public ResponseEntity<ApiResponse<ExpenseResponseDTO>> addExpense(@Valid @Reques
     return ResponseEntity.ok(new ApiResponse<>(true,"Expense added successfully",savedExpense, LocalDateTime.now()));
 }
 
-@GetMapping("/Allexpenses")
+@GetMapping("/expenses")
 public ResponseEntity<ApiResponse<Page<ExpenseResponseDTO>>> getAllExpensesByUser(
         @RequestParam(required = false,defaultValue = "0") int page,
         @RequestParam(required = false,defaultValue = "10") int size,

@@ -10,6 +10,11 @@ import lombok.*;
 @Builder
 @Getter
 @Setter
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"name", "user_id"})
+        }
+)
 public class Category {
 
     @Id
@@ -22,7 +27,7 @@ public class Category {
 
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id",nullable = true)
     private User user;
 
     public boolean getIsDefault() {

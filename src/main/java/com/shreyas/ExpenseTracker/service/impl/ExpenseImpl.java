@@ -43,7 +43,13 @@ public class ExpenseImpl implements ExpenseService {
 
         Expense expense1 = ExpenseMapper.toExpenseEntity(expense);
         expense1.setUser(user);
-        Category c = categoryRepository.findByName(expense.getCategory()).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        Category c = categoryRepository
+                .findByNameAndUserId(expense.getCategory(), user.getId())
+                .orElseGet(() ->
+                        categoryRepository.findByNameAndUserIsNull(expense.getCategory())
+                                .orElseThrow(() -> new RuntimeException("Category not found"))
+                );
+
         expense1.setCategory(c);
         expense1 = expenseRepository.save(expense1);
         return ExpenseMapper.toExpenseResponseDTO(expense1);
