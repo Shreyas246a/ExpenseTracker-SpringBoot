@@ -6,9 +6,8 @@ import com.shreyas.ExpenseTracker.DTO.Response.ExpenseResponseDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
 import com.shreyas.ExpenseTracker.DTO.UserMapper;
 import com.shreyas.ExpenseTracker.Exceptions.ResourceNotFoundException;
-import com.shreyas.ExpenseTracker.Utils.DefaultCategories;
+import com.shreyas.ExpenseTracker.Exceptions.TokenException;
 import com.shreyas.ExpenseTracker.Utils.JwtUtil;
-import com.shreyas.ExpenseTracker.entity.Category;
 import com.shreyas.ExpenseTracker.entity.PasswordResetToken;
 import com.shreyas.ExpenseTracker.entity.User;
 import com.shreyas.ExpenseTracker.repository.CategoryRepository;
@@ -16,30 +15,29 @@ import com.shreyas.ExpenseTracker.repository.PasswordResetTokenRepo;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.MailService;
 import com.shreyas.ExpenseTracker.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.sun.jdi.request.DuplicateRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class UserImpl implements UserService {
-    @Autowired
-    JwtUtil jwtUtil;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private MailService emailService;
-    @Autowired
-    CategoryRepository categoryRepository;
-    @Autowired
-    private PasswordResetTokenRepo passwordResetTokenRepo;
+    private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final MailService emailService;
+    private final PasswordResetTokenRepo passwordResetTokenRepo;
+
+    public UserImpl(JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder, MailService emailService, CategoryRepository categoryRepository, PasswordResetTokenRepo passwordResetTokenRepo) {
+        this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+        this.passwordResetTokenRepo = passwordResetTokenRepo;
+    }
     @Override
     public UserResponseDTO registerUser(UserRequestDTO user) {
         if(userRepository.findByEmail(user.getEmail()).isPresent()){
@@ -73,15 +71,23 @@ public class UserImpl implements UserService {
 
     @Override
     public void forgotPassword(String email){
-        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
-
+        System.out.println(email);
+        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User with this email not found"));
+        PasswordResetToken p = passwordResetTokenRepo.findByEmail(email).orElse(null);
+        if(p!=null){
+            if(p.getExpiry().isBefore(LocalDateTime.now())){
+                passwordResetTokenRepo.delete(p);
+            } else {
+                throw new TokenException("A reset link has already been sent to this email. Please check your inbox.");
+            }
+        }
         String token = UUID.randomUUID().toString();
         PasswordResetToken passwordResetToken = new PasswordResetToken();
         passwordResetToken.setToken(token);
         passwordResetToken.setExpiry(LocalDateTime.now().plusMinutes(15));
         passwordResetToken.setEmail(email);
         passwordResetTokenRepo.save(passwordResetToken);
-        String resetLink = "http://localhost:3000/reset-password?token=" + token;
+        String resetLink = "http://localhost:5173/reset-password?token=" + token;
         emailService.sendEmail(email,
                 "Password Reset Request",
                 "Click the link to reset your password:\n\n" + resetLink +
@@ -93,7 +99,8 @@ public class UserImpl implements UserService {
     public void resetPassword(String token,String password){
         PasswordResetToken p = passwordResetTokenRepo.findByToken(token).orElseThrow(()->new ResourceNotFoundException("Invalid token"));
         if(p.getExpiry().isBefore(LocalDateTime.now())){
-            throw new RuntimeException("Token expired");
+            passwordResetTokenRepo.delete(p);
+            throw new TokenException("Token expired");
         } else {
             String email = p.getEmail();
             System.out.println(p);
@@ -110,9 +117,7 @@ public class UserImpl implements UserService {
         List<User> users = userRepository.findAll();
         return users.stream().map(u -> {
             UserResponseDTO response = UserMapper.userResponseDTO(u);
-            List<ExpenseResponseDTO> expenseResponseDTOS =u.getExpenses().stream().map(expense -> {
-                return ExpenseMapper.toExpenseResponseDTO(expense);
-            }).toList();
+            List<ExpenseResponseDTO> expenseResponseDTOS =u.getExpenses().stream().map(ExpenseMapper::toExpenseResponseDTO).toList();
             response.setExpenses(expenseResponseDTOS);
             return response;
         }).toList();
@@ -122,9 +127,7 @@ public class UserImpl implements UserService {
     public UserResponseDTO getUserById(Long id) {
         User u = userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User not found"));
         UserResponseDTO response = UserMapper.userResponseDTO(u);
-        List<ExpenseResponseDTO> expenseResponseDTOS =u.getExpenses().stream().map(expense -> {
-            return ExpenseMapper.toExpenseResponseDTO(expense);
-        }).toList();
+        List<ExpenseResponseDTO> expenseResponseDTOS =u.getExpenses().stream().map(ExpenseMapper::toExpenseResponseDTO).toList();
         response.setExpenses(expenseResponseDTOS);
         return response;
     }

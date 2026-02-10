@@ -15,12 +15,16 @@ import java.util.List;
 
 @Service
 public class CategoryImpl implements CategoryService {
-    @Autowired
-    AuthUtil authUtil;
-    @Autowired
-    CategoryRepository categoryRepository;
-    @Autowired
-    ExpenseRepository expenseRepository;
+    private final AuthUtil authUtil;
+    private final CategoryRepository categoryRepository;
+    private final ExpenseRepository expenseRepository;
+
+    public CategoryImpl(AuthUtil authUtil, CategoryRepository categoryRepository, ExpenseRepository expenseRepository) {
+        this.authUtil = authUtil;
+        this.categoryRepository = categoryRepository;
+        this.expenseRepository = expenseRepository;
+    }
+
     @Override
     public List<CategoryDTO> getAllCategoriesByUser() {
         User user = authUtil.getCurrentUser();

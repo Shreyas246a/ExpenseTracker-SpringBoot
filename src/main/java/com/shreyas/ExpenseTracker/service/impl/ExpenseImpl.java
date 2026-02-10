@@ -25,16 +25,18 @@ import java.util.stream.Stream;
 
 @Service
 public class ExpenseImpl implements ExpenseService {
-    @Autowired
-    ExpenseRepository expenseRepository;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    JwtUtil jwtUtil;
-    @Autowired
-    CategoryRepository categoryRepository;
-    @Autowired
-    AuthUtil authUtil;
+
+    private final ExpenseRepository expenseRepository;
+    private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
+    private final AuthUtil authUtil;
+
+    public ExpenseImpl(ExpenseRepository expenseRepository, UserRepository userRepository, JwtUtil jwtUtil, CategoryRepository categoryRepository, AuthUtil authUtil) {
+        this.expenseRepository = expenseRepository;
+        this.userRepository = userRepository;
+        this.categoryRepository = categoryRepository;
+        this.authUtil = authUtil;
+    }
 
     @Override
     public ExpenseResponseDTO AddExpense(ExpenseRequestDTO expense) {
@@ -88,7 +90,7 @@ public class ExpenseImpl implements ExpenseService {
         if (existingExpense.getUser().getId() != userId) {
             throw new AccessDeniedException("You do not have access to this expense");
         }
-        Category c = categoryRepository.findByName(expense.getCategory()).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        Category c = categoryRepository.findByNameAndUserId(expense.getCategory(),user.getId()).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         existingExpense.setCategory(c);
         existingExpense.setDate(expense.getDate());
