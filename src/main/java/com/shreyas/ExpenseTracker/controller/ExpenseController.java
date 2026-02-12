@@ -41,6 +41,7 @@ public ResponseEntity<ApiResponse<Page<ExpenseResponseDTO>>> getAllExpensesByUse
         @RequestParam(defaultValue = "date") String sortBy,
         @RequestParam(defaultValue = "desc") String order
 ) {
+    System.out.println(categoryId + " "+minAmount);
     Page<ExpenseResponseDTO> expenses = expenseService.getAllExpenesesByUser(page, size, categoryId, startDate, endDate, minAmount, maxAmount, sortBy, order);
     return ResponseEntity.ok(new ApiResponse<>(true,"Expenses fetched successfully",expenses,LocalDateTime.now()));
 }
