@@ -1,7 +1,6 @@
 package com.shreyas.ExpenseTracker.controller;
 
 import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
-import com.shreyas.ExpenseTracker.entity.User;
 import com.shreyas.ExpenseTracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
