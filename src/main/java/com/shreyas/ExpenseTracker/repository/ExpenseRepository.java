@@ -33,4 +33,23 @@ public interface ExpenseRepository extends JpaRepository<Expense,Long> {
     @Param("maxAmount")    Double maxAmount,
     Pageable pageable
     );
+
+
+    @Query("""
+            SELECT COALESCE(SUM(e.amount), 0) FROM Expense e
+            WHERE e.user.id = :userId
+            """)
+    public double totalExpensesByUser(@Param("userId") Long userId);
+
+    @Query("""
+            SELECT COALESCE(SUM(e.amount), 0) FROM Expense e
+            WHERE e.user.id = :userId
+            AND e.date >= :startDate
+            AND e.date <= :endDate
+            """)
+    public double totalExpensesByUserAndDateRange(
+    @Param("userId") Long userId,
+    @Param("startDate") LocalDate startDate,
+    @Param("endDate") LocalDate endDate
+    );
 }

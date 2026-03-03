@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@PreAuthorize("hasRole('ADMIN')")
+
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
