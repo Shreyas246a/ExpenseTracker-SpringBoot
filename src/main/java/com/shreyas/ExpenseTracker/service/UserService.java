@@ -2,7 +2,7 @@ package com.shreyas.ExpenseTracker.service;
 
 import com.shreyas.ExpenseTracker.DTO.Request.UserRequestDTO;
 import com.shreyas.ExpenseTracker.DTO.Response.UserResponseDTO;
-import com.shreyas.ExpenseTracker.entity.User;
+
 
 import java.util.List;
 import java.util.Map;

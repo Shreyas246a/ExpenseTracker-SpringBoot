@@ -7,8 +7,6 @@ import com.shreyas.ExpenseTracker.entity.User;
 import com.shreyas.ExpenseTracker.repository.CategoryRepository;
 import com.shreyas.ExpenseTracker.repository.ExpenseRepository;
 import com.shreyas.ExpenseTracker.service.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

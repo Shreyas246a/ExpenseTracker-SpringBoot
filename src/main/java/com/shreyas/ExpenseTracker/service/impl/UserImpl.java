@@ -15,7 +15,6 @@ import com.shreyas.ExpenseTracker.repository.PasswordResetTokenRepo;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.MailService;
 import com.shreyas.ExpenseTracker.service.UserService;
-import com.sun.jdi.request.DuplicateRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -48,7 +47,6 @@ public class UserImpl implements UserService {
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
         newUser = userRepository.save(newUser);
 
-        User finalNewUser = newUser;
         return UserMapper.userResponseDTO(newUser);
     }
 
@@ -72,7 +70,6 @@ public class UserImpl implements UserService {
     @Override
     public void forgotPassword(String email){
         System.out.println(email);
-        User user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User with this email not found"));
         PasswordResetToken p = passwordResetTokenRepo.findByEmail(email).orElse(null);
         if(p!=null){
             if(p.getExpiry().isBefore(LocalDateTime.now())){
