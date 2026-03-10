@@ -87,7 +87,7 @@ public class UserImpl implements UserService {
         passwordResetToken.setExpiry(LocalDateTime.now().plusMinutes(15));
         passwordResetToken.setEmail(email);
         passwordResetTokenRepo.save(passwordResetToken);
-        String resetLink = "http://localhost:5173/reset-password?token=" + token;
+        String resetLink = "http://localhost:3000/reset-password?token=" + token;
         emailService.sendEmail(email,
                 "Password Reset Request",
                 "Click the link to reset your password:\n\n" + resetLink +

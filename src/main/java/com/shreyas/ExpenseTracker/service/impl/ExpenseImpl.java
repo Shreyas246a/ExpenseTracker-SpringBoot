@@ -13,15 +13,11 @@ import com.shreyas.ExpenseTracker.repository.CategoryRepository;
 import com.shreyas.ExpenseTracker.repository.ExpenseRepository;
 import com.shreyas.ExpenseTracker.repository.UserRepository;
 import com.shreyas.ExpenseTracker.service.ExpenseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Stream;
 
 @Service
 public class ExpenseImpl implements ExpenseService {
@@ -46,7 +42,7 @@ public class ExpenseImpl implements ExpenseService {
         Expense expense1 = ExpenseMapper.toExpenseEntity(expense);
         expense1.setUser(user);
         Category c = categoryRepository
-                .findByNameAndUserId(expense.getCategory(), user.getId())
+                .findByName(expense.getCategory())
                 .orElseGet(() ->
                         categoryRepository.findByNameAndUserIsNull(expense.getCategory())
                                 .orElseThrow(() -> new RuntimeException("Category not found"))
@@ -90,7 +86,7 @@ public class ExpenseImpl implements ExpenseService {
         if (existingExpense.getUser().getId() != userId) {
             throw new AccessDeniedException("You do not have access to this expense");
         }
-        Category c = categoryRepository.findByNameAndUserId(expense.getCategory(),user.getId()).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        Category c = categoryRepository.findByName(expense.getCategory()).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         existingExpense.setCategory(c);
         existingExpense.setDate(expense.getDate());

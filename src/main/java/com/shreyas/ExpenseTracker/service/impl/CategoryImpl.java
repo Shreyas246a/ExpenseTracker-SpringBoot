@@ -28,7 +28,7 @@ public class CategoryImpl implements CategoryService {
     @Override
     public List<CategoryDTO> getAllCategoriesByUser() {
         User user = authUtil.getCurrentUser();
-            List<Category> categories = categoryRepository.findByUserId(user.getId()).orElseThrow();
+            List<Category> categories = categoryRepository.findByUserIdOrUserIdIsNull(user.getId()).orElseThrow();
             return categories.stream().map(category -> {
                 return   CategoryDTO.builder()
                         .id(category.getId())
@@ -41,7 +41,7 @@ public class CategoryImpl implements CategoryService {
     public CategoryDTO getCategoryById(Long id) {
         User user = authUtil.getCurrentUser();
             Category category= categoryRepository.findById(id).orElseThrow(()->new RuntimeException("Category not found"));
-            if(category.getUser().getId().equals(user.getId())){
+            if(category.getUser().getId().equals(user.getId()) || category.getUser() == null){
                 return   CategoryDTO.builder()
                         .id(category.getId())
                         .name(category.getName())
@@ -69,7 +69,7 @@ public class CategoryImpl implements CategoryService {
     public void deleteCategoryById(Long id) {
         User user = authUtil.getCurrentUser();
             Category category= categoryRepository.findById(id).orElseThrow(()->new RuntimeException("Category not found"));
-            if(category.getUser().getId().equals(user.getId())){
+            if(category.getUser().getId().equals(user.getId()) || category.getUser() == null){
                 System.out.println(expenseRepository.existsByCategory_Id(category.getId()));
                 if(expenseRepository.existsByCategory_Id(category.getId())){
                     throw new RuntimeException("Cannot delete category with associated expenses");
